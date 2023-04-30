@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
             UserRoleSeeder::class,
             AdminUserSeeder::class,
             UserSeeder::class,
-            FootballTeamSeeder::class,
-            FootballMatchSeeder::class
+            FootballMatchSeeder::class,
+            FootballBetSeeder::class,
         ]);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FootballMatchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/test-1', function (Request $request) {
-    return 'Test 1';
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::prefix('v1')->name('v1.')->group(function () {
+            // Matches Admin routes
+            Route::prefix('matches')->name('matches.')->group(function () {
+                Route::get('/', [FootballMatchController::class, 'index'])->name('index');
+                Route::post('/', [FootballMatchController::class, 'store'])->name('store');
+                Route::get('/{footballMatch}', [FootballMatchController::class, 'show'])->name('show');
+                Route::patch('/{footballMatch}', [FootballMatchController::class, 'update'])->name('update');
+                Route::put('/{footballMatch}/result', [FootballMatchController::class, 'submitResult'])->name('submitResult');
+            });
+        });
+    });
 });

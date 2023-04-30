@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('football_matches', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('home_team_id');
-            $table->unsignedBigInteger('away_team_id');
+
+            $table->string('home_team_name');
+            $table->string('away_team_name');
             $table->dateTime('starts_at');
             $table->dateTime('ends_at');
             $table->integer('home_team_score')->nullable();
@@ -22,9 +23,6 @@ return new class extends Migration
 
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('home_team_id')->references('id')->on('football_teams');
-            $table->foreign('away_team_id')->references('id')->on('football_teams');
         });
     }
 
