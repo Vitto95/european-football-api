@@ -19,25 +19,11 @@ class FootballMatchFactory extends Factory
      */
     public function definition(): array
     {
-        $home_team = FootballTeam::inRandomOrder()->first();
-        $away_team = FootballTeam::where('id', '<>', $home_team->id)->first();
-        $starts_at = null;
-
-        // Cannot schedule same match twice in day, 
-        // so get last scheduled match (if exists) and add random days and minutes.
-        $scheduled_match = FootballMatch::whereHomeTeamId($home_team->id)
-            ->whereAwayTeamId($away_team->id)
-            ->first();
-
-        if (!is_null($scheduled_match)) {
-            $starts_at = Carbon::parse($scheduled_match->starts_at)->addDays(rand(1, 31))->addMinutes(rand(1, 59));
-        } else {
-            $starts_at = Carbon::now()->addDays(rand(1, 31))->addMinutes(rand(1, 59));
-        }
+        $starts_at = Carbon::now()->addDays(rand(2, 31))->addMinutes(rand(1, 59));
 
         return [
-            'home_team_id' => $home_team->id,
-            'away_team_id' => $away_team->id,
+            'home_team_name' => fake()->unique()->city(),
+            'away_team_name' => fake()->unique()->city(),
             'starts_at' => $starts_at->toDateTimeString(),
             'ends_at' => $starts_at->addHours(2)->toDateTimeString()
         ];

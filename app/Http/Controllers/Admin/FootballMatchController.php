@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\FootballMatchRequest;
+use App\Http\Requests\FootballMatchResultRequest;
+use App\Http\Resources\FootballMatchResource;
+use App\Models\FootballMatch;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 
 class FootballMatchController extends Controller
@@ -10,56 +16,75 @@ class FootballMatchController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+        $football_matches = FootballMatch::query();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        if (isset($request->future)) {
+            $football_matches = $football_matches->future();
+        } elseif (isset($request->past)) {
+            $football_matches = $football_matches->past();
+        }
+
+        $football_matches = $football_matches->get();
+
+        return FootballMatchResource::collection($football_matches);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(FootballMatchRequest $request)
     {
-        //
+        $starts_at = $request->startsDate . " " . $request->startsTime;
+
+        FootballMatch::create([
+            'home_team_name' => $request->homeTeamName,
+            'away_team_name' => $request->awayTeamName,
+            'starts_at' => Carbon::parse($starts_at)->toDateTimeString(),
+            'ends_at' => Carbon::parse($starts_at)->addHours(2)->toDateTimeString()
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(FootballMatch $footballMatch)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return new FootballMatchResource($footballMatch);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(FootballMatchRequest $request, FootballMatch $footballMatch)
     {
-        //
+        $starts_at = $request->startsDate . " " . $request->startsTime;
+
+        $footballMatch->home_team_name = $request->homeTeamName;
+        $footballMatch->away_team_name = $request->awayTeamName;
+        $footballMatch->starts_at = Carbon::parse($starts_at)->toDateTimeString();
+        $footballMatch->ends_at = Carbon::parse($starts_at)->addHours(2)->toDateTimeString();
+
+        $footballMatch->save();
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Submit the result of football match.
      */
-    public function destroy(string $id)
+    public function submitResult(FootballMatchResultRequest $request, FootballMatch $footballMatch)
     {
-        //
+        $footballMatch->home_team_score = $request->homeTeamScore;
+        $footballMatch->away_team_score = $request->awayTeamScore;
+
+        $footballMatch->save();
+    }
+
+    /**
+     * Delete the specified resource from storage.
+     */
+    public function delete(FootballMatch $football_match)
+    {
+        $football_match->delete();
     }
 }
