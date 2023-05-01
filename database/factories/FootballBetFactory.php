@@ -18,7 +18,7 @@ class FootballBetFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => 2,
+            'user_id' => 1,
             'football_match_id' => 200,
             'home_team_bet_score' => fake()->numberBetween(0, 7),
             'away_team_bet_score' => fake()->numberBetween(0, 7),

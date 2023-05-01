@@ -19,7 +19,7 @@ class FootballMatchFactory extends Factory
      */
     public function definition(): array
     {
-        $starts_at = Carbon::now()->addDays(rand(2, 31))->addMinutes(rand(1, 59));
+        $starts_at = Carbon::now()->subDays(rand(1, 7))->addDays(rand(2, 31))->addMinutes(rand(1, 59));
 
         return [
             'home_team_name' => fake()->unique()->city(),
