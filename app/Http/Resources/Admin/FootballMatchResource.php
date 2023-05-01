@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\FootballBetResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,7 +30,6 @@ class FootballMatchResource extends JsonResource
             ],
             'relationships' => [
                 'bets' => FootballBetResource::collection($this->bets),
-                'userBet' => isset($this->user_bet) ? new FootballBetResource($this->user_bet) : null
             ]
         ];
     }

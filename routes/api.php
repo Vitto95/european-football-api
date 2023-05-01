@@ -1,6 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\FootballMatchController;
+use App\Http\Controllers\Admin\FootballMatchController as AdminFootballMatchController;
+use App\Http\Controllers\FootballMatchController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,15 +23,25 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('v1')->name('v1.')->group(function () {
+        Route::prefix('matches')->name('matches.')->group(function () {
+            Route::get('/', [FootballMatchController::class, 'index'])->name('index');
+            Route::post('/{footballMatch}/users/{user}/bet', [FootballMatchController::class, 'storeBet'])->name('storeBet');
+        });
+
+        Route::prefix('ranking')->name('ranking.')->group(function () {
+            Route::get('/', [UserController::class, 'getRanking'])->name('ranking');
+        });
+    });
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('v1')->name('v1.')->group(function () {
             // Matches Admin routes
             Route::prefix('matches')->name('matches.')->group(function () {
-                Route::get('/', [FootballMatchController::class, 'index'])->name('index');
-                Route::post('/', [FootballMatchController::class, 'store'])->name('store');
-                Route::get('/{footballMatch}', [FootballMatchController::class, 'show'])->name('show');
-                Route::patch('/{footballMatch}', [FootballMatchController::class, 'update'])->name('update');
-                Route::put('/{footballMatch}/result', [FootballMatchController::class, 'submitResult'])->name('submitResult');
+                Route::get('/', [AdminFootballMatchController::class, 'index'])->name('index');
+                Route::post('/', [AdminFootballMatchController::class, 'store'])->name('store');
+                Route::get('/{footballMatch}', [AdminFootballMatchController::class, 'show'])->name('show');
+                Route::patch('/{footballMatch}', [AdminFootballMatchController::class, 'update'])->name('update');
+                Route::put('/{footballMatch}/result', [AdminFootballMatchController::class, 'submitResult'])->name('submitResult');
             });
         });
     });

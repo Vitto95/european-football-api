@@ -7,6 +7,7 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class FootballMatch extends Model
 {
@@ -23,15 +24,10 @@ class FootballMatch extends Model
 
     // RELATIONSHIPS 
 
-    // public function home_team()
-    // {
-    //     return $this->belongsTo(FootballTeam::class, 'home_team_id', 'id');
-    // }
-
-    // public function away_team()
-    // {
-    //     return $this->belongsTo(FootballTeam::class, 'away_team_id', 'id');
-    // }
+    public function bets()
+    {
+        return $this->hasMany(FootballBet::class, 'football_match_id', 'id');
+    }
 
     // SCOPES
 
@@ -61,8 +57,8 @@ class FootballMatch extends Model
 
     // ATTRIBUTES
 
-    public function getFormattedNameAttribute()
+    public function getUserBetAttribute()
     {
-        return $this->home_team->name . ' - ' . $this->away_team->name;
+        return $this->bets()->where('user_id', Auth::user()->id)->first();
     }
 }

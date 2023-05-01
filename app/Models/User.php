@@ -41,4 +41,19 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(UserRole::class, 'role_id', 'id');
+    }
+
+    public function bets()
+    {
+        return $this->hasMany(FootballBet::class, 'user_id', 'id');
+    }
+
+    public function isAdmin()
+    {
+        return $this->role->name === 'admin';
+    }
 }

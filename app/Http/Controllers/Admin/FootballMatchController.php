@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FootballMatchRequest;
 use App\Http\Requests\FootballMatchResultRequest;
-use App\Http\Resources\FootballMatchResource;
+use App\Http\Resources\Admin\FootballMatchResource;
 use App\Models\FootballMatch;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FootballMatchController extends Controller
 {
@@ -18,17 +20,25 @@ class FootballMatchController extends Controller
      */
     public function index(Request $request)
     {
-        $football_matches = FootballMatch::query();
+        $this->authorize('viewAny', FootballMatch::class);
 
-        if (isset($request->future)) {
-            $football_matches = $football_matches->future();
-        } elseif (isset($request->past)) {
-            $football_matches = $football_matches->past();
+        try {
+            $football_matches = FootballMatch::query();
+
+            if (isset($request->future)) {
+                $football_matches = $football_matches->future();
+            } elseif (isset($request->past)) {
+                $football_matches = $football_matches->past();
+            }
+
+            $football_matches = $football_matches->get();
+
+            return FootballMatchResource::collection($football_matches);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return $this->error('Cannot create football match', 500);
         }
-
-        $football_matches = $football_matches->get();
-
-        return FootballMatchResource::collection($football_matches);
     }
 
     /**
@@ -36,14 +46,28 @@ class FootballMatchController extends Controller
      */
     public function store(FootballMatchRequest $request)
     {
-        $starts_at = $request->startsDate . " " . $request->startsTime;
+        try {
+            DB::beginTransaction();
 
-        FootballMatch::create([
-            'home_team_name' => $request->homeTeamName,
-            'away_team_name' => $request->awayTeamName,
-            'starts_at' => Carbon::parse($starts_at)->toDateTimeString(),
-            'ends_at' => Carbon::parse($starts_at)->addHours(2)->toDateTimeString()
-        ]);
+            $this->authorize('create', FootballMatch::class);
+
+            $starts_at = $request->startsDate . " " . $request->startsTime;
+
+            $football_match = FootballMatch::create([
+                'home_team_name' => $request->homeTeamName,
+                'away_team_name' => $request->awayTeamName,
+                'starts_at' => Carbon::parse($starts_at)->toDateTimeString(),
+                'ends_at' => Carbon::parse($starts_at)->addHours(2)->toDateTimeString()
+            ]);
+
+            DB::commit();
+
+            return new FootballMatchResource($football_match);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return $this->error('Cannot create football match', 500);
+        }
     }
 
     /**
@@ -51,7 +75,15 @@ class FootballMatchController extends Controller
      */
     public function show(FootballMatch $footballMatch)
     {
-        return new FootballMatchResource($footballMatch);
+        $this->authorize('view', FootballMatch::class);
+
+        try {
+            return new FootballMatchResource($footballMatch);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return $this->error('Cannot create football match', 500);
+        }
     }
 
     /**
@@ -59,14 +91,24 @@ class FootballMatchController extends Controller
      */
     public function update(FootballMatchRequest $request, FootballMatch $footballMatch)
     {
-        $starts_at = $request->startsDate . " " . $request->startsTime;
+        $this->authorize('update', FootballMatch::class);
 
-        $footballMatch->home_team_name = $request->homeTeamName;
-        $footballMatch->away_team_name = $request->awayTeamName;
-        $footballMatch->starts_at = Carbon::parse($starts_at)->toDateTimeString();
-        $footballMatch->ends_at = Carbon::parse($starts_at)->addHours(2)->toDateTimeString();
+        try {
+            $starts_at = $request->startsDate . " " . $request->startsTime;
 
-        $footballMatch->save();
+            $footballMatch->home_team_name = $request->homeTeamName;
+            $footballMatch->away_team_name = $request->awayTeamName;
+            $footballMatch->starts_at = Carbon::parse($starts_at)->toDateTimeString();
+            $footballMatch->ends_at = Carbon::parse($starts_at)->addHours(2)->toDateTimeString();
+
+            $footballMatch->save();
+
+            return new FootballMatchResource($footballMatch);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return $this->error('Cannot update football match', 500);
+        }
     }
 
     /**
@@ -74,10 +116,21 @@ class FootballMatchController extends Controller
      */
     public function submitResult(FootballMatchResultRequest $request, FootballMatch $footballMatch)
     {
-        $footballMatch->home_team_score = $request->homeTeamScore;
-        $footballMatch->away_team_score = $request->awayTeamScore;
+        $this->authorize('submitResult', FootballMatch::class);
 
-        $footballMatch->save();
+        try {
+
+            $footballMatch->home_team_score = $request->homeTeamScore;
+            $footballMatch->away_team_score = $request->awayTeamScore;
+
+            $footballMatch->save();
+
+            return new FootballMatchResource($footballMatch);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return $this->error('Cannot submit result of football match', 500);
+        }
     }
 
     /**
